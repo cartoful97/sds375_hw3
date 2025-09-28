@@ -1,0 +1,84 @@
+---
+title: "HW 3 Report"
+author: "Iris Quan"
+date: "2025-09-28"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Recommendation for FedEx Website Redesign
+
+When the company redesigned a portion of the website one year ago, data was collected on the change in customer sales during this period. Using this sales data, we have determined that the redesign increased the average dollar amount of each sale by much more than $1.80 per customer, and thus, we would recommend committing to the complete website redesign.
+
+
+```{r include = FALSE}
+library(tidyverse)
+library(colorfindr)
+```
+```{r include = FALSE}
+data <- read_csv('homework3_data.csv')
+```
+```{r, results = 'hide', fig.keep = 'none'}
+# company chosen: fedex
+dat <- get_colors("webpage.png")
+plot_colors(dat[1:50,])
+cols <- make_palette(dat[1:50,])
+# #471887, #ED6C2D
+```
+
+## Estimated Average Increase in Sales
+
+```{r}
+lmd = lm(sales ~ design, data = data)
+summary(lmd)
+```
+We are estimating that a redesign will increase sales by about $3.66 per customer.
+
+Fitting a linear model to the data by regressing sales on website design resulted in an intercept of 31.85 and a slope of 3.66. In other words, the model has current website earning a base of $31.85 per customer sale, while the redesign earned the base amount and an additional \$3.66. The p-values for both the intercept and slope are extremely low, at <2e-16 and 3.49e-14, respectively, suggesting statistical significance.
+
+## Graphical Supporting Evidence
+
+Below, we have provided some graphs to support and lend confidence to our recommendation.
+
+This scatterplot plots each customer sale by the Net Promoter Score (NPS), a score from 0 to 9 indicating how likely they were to recommend the company to another person, as well as the dollar amount of that particular customer sale. The color of the point indicates which website design the sale occurred under. Noticeably, there is a general upwards trend of data points with higher Net Promoter Scores also having higher sales numbers, and more importantly, those high-NPS high-sales points tend to be sales made under the redesigned website rather than the current website.
+
+
+```{r}
+data |>
+  ggplot(aes(nps, sales)) +
+  geom_point(aes(color = as.factor(design)), size = 4, alpha = 0.7) +
+  scale_color_manual(values = c('#471887', '#ED6C2D'), 
+                     labels = c("0" = "Current Design", "1" = "Redesign"), name='Design') +
+  labs(x = 'Net Promoter Score', y = 'Sales ($)',
+       title = 'Net Promoter Score vs. Sales by Website Design')
+```
+
+
+Next, this histogram focuses entirely on the sales numbers; it separates the data into two groups based on whether the sales occurred under the redesign or the current website design, and then plots the distributions. There is an evident difference between the distributions of the two groups; the mean of each group is shown as a vertical line, the current design mean appearing to be at about $31.8 and the redesign mean appearing to be at about \$35.5.
+
+
+```{r}
+data |>
+  ggplot(aes(x = sales, fill = as.factor(design))) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30) +
+  scale_fill_manual(values = c("0" = "#471887", "1" = "#ED6C2D"),
+                    labels = c("0" = "Current Design", "1" = "Redesign"),
+    name = "Design") +
+  geom_vline(xintercept = mean(data[data$design == 0,]$sales), color = '#471887') +
+  geom_vline(xintercept = mean(data[data$design == 1,]$sales), color = '#ED6C2D') +
+  labs(x = 'Sales ($)', y = 'Count',
+       title = 'Distribution of Customer Sales by Website Design')
+```
+```{r}
+mean(data[data$design == 0,]$sales)
+mean(data[data$design == 1,]$sales)
+```
+
+
+## Alternative Statement
+
+Though we have high confidence in our statement, analysis, and subsequent recommendation, there is always the chance of the data being an exceptionally errant sample. An alternative statement is that there is no change in sales amount between the two website designs; there is always the possibility of the higher sales volume being a result of an external factor, such as a promotional event at the time of the website redesign.
+
